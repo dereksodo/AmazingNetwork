@@ -1,0 +1,22 @@
+# Each area has an owner who must review changes (report §3.1).
+
+# A — Jiadong Zhang: backend core, authorization policy, data model
+/backend/app/                @dereksodo
+/backend/app/policy.py       @dereksodo @ZayedAlNahyan
+
+# B — Nura: real-time, collaboration, CI and infrastructure
+/backend/app/realtime/       @NuraAlMheiri
+/infra/                      @NuraAlMheiri
+/.github/                    @NuraAlMheiri
+
+# C — Fatima: frontend
+/frontend/                   @fatimalmazrouei13
+
+# D — Zayed: moderation, AI feature, tests, documentation
+/backend/app/moderation/     @ZayedAlNahyan
+/backend/app/ai/             @ZayedAlNahyan
+/backend/tests/              @ZayedAlNahyan
+/docs/                       @ZayedAlNahyan
+
+# Contract changes need both a backend and a frontend reviewer.
+/shared/contracts/           @dereksodo @fatimalmazrouei13
