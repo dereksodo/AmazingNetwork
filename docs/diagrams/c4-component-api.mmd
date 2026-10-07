@@ -1,0 +1,66 @@
+%% C4 Level 3 — Components inside the API Application (C-API)
+flowchart TB
+  web["<b>Web App</b> (C-WEB)<br/><i>[Container: React]</i>"]
+
+  subgraph api["API Application (C-API) — FastAPI"]
+    direction TB
+    subgraph entry["Entry points"]
+      direction LR
+      routers["<b>REST routers</b> (K-HTTP)<br/>/api/v1/* endpoints, Pydantic<br/>validation, uniform errors"]
+      auth["<b>Auth & Session</b> (K-AUTH)<br/>OIDC login, session cookie,<br/>roles, mute check"]
+      ws["<b>Realtime Gateway</b> (K-RT)<br/>WebSocket connections, channel<br/>subscriptions, send-time checks"]
+    end
+    subgraph features["Feature modules"]
+      direction LR
+      comm["<b>Communities</b> (K-COMM)<br/>approve, join/leave,<br/>member roles"]
+      posts["<b>Content</b> (K-POST)<br/>posts, discussions, events,<br/>comments, reactions, RSVPs,<br/>HTML sanitizing"]
+      dm["<b>Direct Messages</b> (K-DM)<br/>1:1 conversations,<br/>blocking"]
+      collab["<b>Collaboration</b> (K-COLLAB)<br/>Yjs rooms, update log,<br/>snapshots, publish"]
+      mod["<b>Moderation</b> (K-MOD)<br/>reports, queue, actions,<br/>notices, mutes, appeals"]
+    end
+    subgraph shared["Shared services"]
+      direction LR
+      policy["<b>Audience Policy</b> (K-POLICY)<br/>can_view / can_act,<br/>SQL visibility filters"]
+      notif["<b>Notifications</b> (K-NOTIF)<br/>replies, mentions,<br/>announcements, notices"]
+      audit["<b>Audit Logger</b> (K-AUDIT)<br/>append-only action log"]
+      ai["<b>AI Triage client</b> (K-AI)<br/>enqueue job, store<br/>suggestion; never acts"]
+      bus["<b>Event Bus adapter</b> (K-BUS)<br/>publish / receive<br/>domain events"]
+    end
+    repo["<b>Repositories</b> (K-REPO) — SQLAlchemy data access and transactions"]
+  end
+
+  db[("<b>Database</b> (C-DB)<br/>PostgreSQL")]
+  redis[("<b>Broker</b> (C-REDIS)<br/>Redis")]
+  sso["<b>University SSO</b><br/><i>[External]</i>"]
+
+  web -- "HTTPS / JSON" --> routers
+  web -- "WSS" --> ws
+  routers -- "authenticate" --> auth
+  ws -- "authenticate" --> auth
+  auth -- "OIDC" --> sso
+  routers -- "call" --> features
+  ws -- "Yjs updates" --> collab
+  features -- "every read / write checked by" --> policy
+  ws -- "per-recipient check" --> policy
+  mod --> audit
+  mod --> ai
+  posts & mod --> notif
+  features -- "domain events" --> bus
+  notif --> bus
+  bus -- "events for local sockets" --> ws
+  features --> repo
+  audit & ai --> repo
+  repo -- "SQL" --> db
+  bus -- "pub/sub" --> redis
+  ai -- "enqueue job" --> redis
+
+  classDef comp fill:#85bbf0,stroke:#5d82a8,color:#000
+  classDef cont fill:#438dd5,stroke:#2e6295,color:#fff
+  classDef external fill:#8a8a8a,stroke:#6b6b6b,color:#fff
+  class routers,ws,auth,policy,comm,posts,dm,collab,mod,ai,notif,audit,repo,bus comp
+  class web,db,redis cont
+  class sso external
+  style api fill:none,stroke:#438dd5,stroke-dasharray:6 4,color:#2e6295
+  style entry fill:#f4f8fc,stroke:#c4d4e6
+  style features fill:#f4f8fc,stroke:#c4d4e6
+  style shared fill:#f4f8fc,stroke:#c4d4e6

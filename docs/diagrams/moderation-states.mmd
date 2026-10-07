@@ -1,0 +1,17 @@
+%% State machine for a report and its moderation action (FR-MOD, FR-AI)
+stateDiagram-v2
+  [*] --> Open: user files report
+  Open --> Scored: AI suggestion stored
+  Open --> Unscored: LLM timeout / invalid output
+  Scored --> Dismissed: moderator dismisses
+  Unscored --> Dismissed: moderator dismisses
+  Scored --> Actioned: hide / remove / notice / mute
+  Unscored --> Actioned: hide / remove / notice / mute
+  Actioned --> Appealed: author appeals (once, within 7 days)
+  Actioned --> Final: 7 days pass with no appeal
+  Appealed --> Upheld: different moderator confirms
+  Appealed --> Overturned: different moderator reverses
+  Overturned --> [*]: content restored / mute lifted
+  Upheld --> Final
+  Dismissed --> [*]
+  Final --> [*]: removed content purged after 30 days

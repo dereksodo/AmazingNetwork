@@ -1,0 +1,30 @@
+%% C4 Level 1 — System context for Connect
+flowchart TB
+  student["<b>Student</b><br/><i>[Person]</i><br/>Posts, discusses, comments,<br/>RSVPs, messages, reports"]
+  officer["<b>Group officer</b><br/><i>[Person]</i><br/>Runs a community; co-writes<br/>announcements and events"]
+  moderator["<b>Moderator</b><br/><i>[Person]</i><br/>Reviews reports, acts,<br/>decides appeals"]
+  admin["<b>School admin</b><br/><i>[Person]</i><br/>Approves communities, appoints<br/>moderators, reads audit log"]
+
+  subgraph boundary["Connect — system boundary"]
+    connect["<b>Connect</b><br/><i>[Software system]</i><br/>Campus social network: communities, posts,<br/>live co-editing, direct messages, moderation,<br/>AI report triage"]
+  end
+
+  sso["<b>University SSO</b><br/><i>[External system, OIDC]</i><br/>Verifies university accounts<br/>(mocked in PoC)"]
+  llm["<b>DeepSeek LLM API</b><br/><i>[External system]</i><br/>Suggests category and severity<br/>for reported content (mock by default)"]
+  email["<b>University email</b><br/><i>[External system, SMTP]</i><br/>Sends sign-in and appeal<br/>outcome emails"]
+
+  student -- "Uses (HTTPS, WSS)" --> connect
+  officer -- "Uses (HTTPS, WSS)" --> connect
+  moderator -- "Moderates (HTTPS, WSS)" --> connect
+  admin -- "Administers (HTTPS)" --> connect
+  connect -- "Redirects sign-in, validates ID token (OIDC)" --> sso
+  connect -- "Sends reported text, gets triage JSON (HTTPS)" --> llm
+  connect -- "Sends notifications (SMTP)" --> email
+
+  classDef person fill:#08427b,stroke:#052e56,color:#fff
+  classDef system fill:#1168bd,stroke:#0b4884,color:#fff
+  classDef external fill:#8a8a8a,stroke:#6b6b6b,color:#fff
+  class student,officer,moderator,admin person
+  class connect system
+  class sso,llm,email external
+  style boundary fill:none,stroke:#1168bd,stroke-dasharray:6 4,color:#1168bd
