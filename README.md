@@ -15,36 +15,66 @@ Connect is a social network for the university community: students and groups sh
 
 ## Proof of concept: setup and run
 
-Requirements: Python 3.11+ and a web browser. No paid API keys, no database — all data is fictional and kept in memory.
+Requirements: Python 3.11+ and a web browser. Nothing else needs to be installed by hand: no database, no paid API keys. All data is fictional and kept in memory.
 
-**1. Backend** (terminal 1)
+### Quick start (macOS / Linux)
+
+```bash
+git clone https://github.com/dereksodo/AmazingNetwork.git
+cd AmazingNetwork
+./run.sh
+```
+
+`run.sh` does everything for you:
+
+1. checks that Python is 3.11 or newer;
+2. on the first run, creates `backend/.venv` and installs the packages from `backend/requirements-dev.txt` (FastAPI, uvicorn, nh3, pytest, …). This takes about a minute and needs internet. Later runs skip this step unless the requirements files change;
+3. starts the backend on port 8000 and serves the frontend on port 5173.
+
+Then open:
+
+- http://localhost:5173: the PoC client. Pick a fictional user, create a post, then fetch it or switch user to see the audience rules.
+- http://127.0.0.1:8000/docs: interactive API docs.
+- http://127.0.0.1:8000/api/v1/health: should show `{"status":"ok"}`.
+
+Press **Ctrl+C** to stop both servers.
+
+Run the tests (29 tests, including a contract test that fails if the backend drifts from `shared/contracts/openapi.yaml`):
+
+```bash
+./run.sh test
+```
+
+### Manual setup (Windows, or if you prefer)
+
+**Terminal 1: backend**
 
 ```bash
 cd backend
-python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate            # macOS / Linux: source .venv/bin/activate
 pip install -r requirements-dev.txt
 uvicorn app.main:app --port 8000
 ```
 
-Check it: open http://127.0.0.1:8000/api/v1/health (should show `{"status":"ok"}`). Interactive API docs: http://127.0.0.1:8000/docs.
-
-**2. Frontend** (terminal 2)
+**Terminal 2: frontend**
 
 ```bash
 cd frontend
-python3 -m http.server 5173
+python -m http.server 5173
 ```
 
-Open http://localhost:5173. Pick a fictional user, create a post, then fetch it or switch user to see audience rules in action.
+**Tests**: inside `backend/`, with the venv active, run `pytest`.
 
-**3. Tests** (terminal 1, inside `backend/` with the venv active)
+### Troubleshooting
 
-```bash
-pytest
-```
-
-The tests include a contract test that fails if the backend drifts from `shared/contracts/openapi.yaml`.
+| Problem | Fix |
+|---|---|
+| `Python 3.11 or newer is required` | Install a recent Python, or run `PYTHON=python3.12 ./run.sh` |
+| `Address already in use` | Another program is using port 8000 or 5173; stop it, or close an old `run.sh` |
+| Frontend says "Is the backend running?" | Start the backend first and check the health URL above |
+| `permission denied: ./run.sh` | `chmod +x run.sh` or `bash run.sh` |
+| Packages look broken | Delete `backend/.venv` and run `./run.sh` again |
 
 ### Fictional users
 
@@ -81,6 +111,7 @@ Configuration comes from environment variables; see [`.env.example`](.env.exampl
 ## Repository layout
 
 ```
+run.sh              One-command local start (installs dependencies)
 backend/            FastAPI app (app/api, app/policy.py, app/store.py) and tests/
 frontend/           PoC browser client (React app in Assignment 2)
 shared/contracts/   OpenAPI contract shared by frontend and backend

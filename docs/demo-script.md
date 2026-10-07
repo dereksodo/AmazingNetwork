@@ -1,6 +1,6 @@
 # Proof-of-concept demo script (≤ 3 minutes)
 
-Before recording: start the backend and frontend as in the root README, and open http://localhost:5173 next to http://127.0.0.1:8000/docs.
+Before recording: run `./run.sh` (see the root README), and open http://localhost:5173 next to http://127.0.0.1:8000/docs.
 
 | Time | Who speaks | Show | Say |
 |---|---|---|---|
