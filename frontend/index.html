@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connect — proof of concept</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Connect <small>proof of concept</small></h1>
+    <p>Uses contract <code>C-POSTS</code> (<code>shared/contracts/openapi.yaml</code>). All data is fictional.</p>
+    <label>Signed in as (mock SSO)
+      <select id="user">
+        <option value="aisha">Aisha — student, Robotics Club member</option>
+        <option value="omar">Omar — student, Chess Society member, follows Aisha</option>
+        <option value="lina">Lina — Robotics Club officer</option>
+        <option value="sam">Sam — moderator</option>
+        <option value="">(nobody — not signed in)</option>
+      </select>
+    </label>
+  </header>
+
+  <main>
+    <section aria-labelledby="create-h">
+      <h2 id="create-h">1. Create a post — <code>POST /api/v1/posts</code></h2>
+      <form id="create-form">
+        <label>Type
+          <select name="type">
+            <option value="post">post</option>
+            <option value="discussion">discussion</option>
+          </select>
+        </label>
+        <label>Community
+          <select name="community_id">
+            <option value="">none (profile post)</option>
+            <option value="1">1 — Robotics Club</option>
+            <option value="2">2 — Chess Society</option>
+          </select>
+        </label>
+        <label>Visibility
+          <select name="visibility">
+            <option value="campus">campus</option>
+            <option value="community">community</option>
+            <option value="followers">followers</option>
+          </select>
+        </label>
+        <label>Title (required for discussions)
+          <input name="title" maxlength="120">
+        </label>
+        <label>Body (rich text as HTML)
+          <textarea name="body_html" rows="3" required><p>Robotics meetup moved to <b>Room 204</b>.</p></textarea>
+        </label>
+        <button type="submit">Send request</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="get-h">
+      <h2 id="get-h">2. Fetch a post — <code>GET /api/v1/posts/{id}</code></h2>
+      <form id="get-form">
+        <label>Post id <input name="post_id" type="number" min="1" value="1" required></label>
+        <button type="submit">Send request</button>
+      </form>
+      <button id="feed-btn" type="button">Load my feed — <code>GET /api/v1/posts</code></button>
+    </section>
+
+    <section aria-labelledby="ex-h" class="exchange">
+      <h2 id="ex-h">Last request and response</h2>
+      <h3>Request</h3>
+      <pre id="request">—</pre>
+      <h3>Response <span id="status"></span></h3>
+      <pre id="response">—</pre>
+    </section>
+
+    <section aria-labelledby="feed-h">
+      <h2 id="feed-h">Feed (what the signed-in user may see)</h2>
+      <ul id="feed"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

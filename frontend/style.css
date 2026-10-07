@@ -1,0 +1,13 @@
+body { font: 15px/1.45 system-ui, sans-serif; max-width: 860px; margin: 0 auto; padding: 16px; color: #1d1d1f; background: #fafafa; }
+h1 small { font-size: 0.5em; color: #666; font-weight: normal; }
+h2 { font-size: 1.05rem; margin-top: 1.6rem; }
+h3 { font-size: 0.95rem; margin: 0.8rem 0 0.3rem; }
+label { display: block; margin: 0.4rem 0; }
+input, select, textarea { display: block; width: 100%; box-sizing: border-box; font: inherit; padding: 4px 6px; margin-top: 2px; }
+button { margin-top: 0.6rem; padding: 6px 12px; font: inherit; cursor: pointer; }
+pre { background: #fff; border: 1px solid #ddd; padding: 8px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+#status.ok { color: #1a7f37; }
+#status.err { color: #c62828; }
+#feed { list-style: none; padding: 0; }
+#feed li { background: #fff; border: 1px solid #ddd; padding: 8px 10px; margin-bottom: 8px; }
+.meta { font-size: 0.8rem; color: #666; }
