@@ -1,0 +1,212 @@
+openapi: 3.1.0
+info:
+  title: Connect API — posts contract (used by the proof of concept)
+  version: 0.1.0
+  description: |
+    Contract C-POSTS from report section 2.4. The proof of concept implements
+    exactly these operations. The full API (communities, drafts, reports,
+    appeals, WebSocket events) is specified in the report.
+
+    Authentication: the planned system uses an HttpOnly, SameSite=Lax session
+    cookie issued after university SSO sign-in. The proof of concept replaces
+    SSO and the cookie with the mock header `X-Demo-User: <user id>`
+    (fictional users only).
+servers:
+  - url: http://127.0.0.1:8000
+paths:
+  /api/v1/health:
+    get:
+      operationId: health
+      summary: Liveness check
+      responses:
+        "200":
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ok }
+  /api/v1/posts:
+    post:
+      operationId: createPost
+      summary: Create a post or discussion
+      description: |
+        Authorization: the caller must be signed in. If `community_id` is set,
+        the caller must be a member of that community.
+      parameters:
+        - $ref: "#/components/parameters/DemoUser"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PostCreate" }
+            example:
+              type: post
+              community_id: 1
+              visibility: community
+              title: null
+              body_html: "<p>Robotics meetup moved to <b>Room 204</b>.</p>"
+      responses:
+        "201":
+          description: Created. `Location` header points to the new post.
+          headers:
+            Location:
+              schema: { type: string, example: /api/v1/posts/1 }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Post" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/NotAMember" }
+        "404": { $ref: "#/components/responses/CommunityNotFound" }
+    get:
+      operationId: listPosts
+      summary: Feed of posts the caller is allowed to see, newest first
+      parameters:
+        - $ref: "#/components/parameters/DemoUser"
+        - name: community_id
+          in: query
+          required: false
+          schema: { type: integer }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      responses:
+        "200":
+          description: Visible posts only
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PostList" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /api/v1/posts/{post_id}:
+    get:
+      operationId: getPost
+      summary: Get one post
+      description: |
+        Returns 404 both when the post does not exist and when the caller is
+        outside its audience, so that hidden posts cannot be discovered (FR-AUD-2).
+      parameters:
+        - $ref: "#/components/parameters/DemoUser"
+        - name: post_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: The post
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Post" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/PostNotFound" }
+components:
+  parameters:
+    DemoUser:
+      name: X-Demo-User
+      in: header
+      required: true
+      description: PoC stand-in for the SSO session token. One of aisha, omar, lina, sam.
+      schema: { type: string, example: aisha }
+  schemas:
+    PostType:
+      type: string
+      enum: [post, discussion]
+    Visibility:
+      type: string
+      enum: [campus, community, followers]
+      description: |
+        campus = every verified user; community = members of community_id only;
+        followers = the author's followers only (profile posts, no community_id).
+    PostCreate:
+      type: object
+      additionalProperties: false
+      required: [visibility, body_html]
+      properties:
+        type: { $ref: "#/components/schemas/PostType", default: post }
+        community_id:
+          type: [integer, "null"]
+          description: Required for discussions and for visibility=community. Must be null for visibility=followers.
+        visibility: { $ref: "#/components/schemas/Visibility" }
+        title:
+          type: [string, "null"]
+          maxLength: 120
+          description: Required for discussions.
+        body_html:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: Rich text. The server removes any tag or attribute outside the allowlist (p, br, b, strong, i, em, u, ul, ol, li, h2, h3, a[href], blockquote, code).
+    Author:
+      type: object
+      required: [id, display_name]
+      properties:
+        id: { type: string }
+        display_name: { type: string }
+    Post:
+      type: object
+      required: [id, type, author, community_id, visibility, title, body_html, status, version, created_at]
+      properties:
+        id: { type: integer }
+        type: { $ref: "#/components/schemas/PostType" }
+        author: { $ref: "#/components/schemas/Author" }
+        community_id: { type: [integer, "null"] }
+        visibility: { $ref: "#/components/schemas/Visibility" }
+        title: { type: [string, "null"] }
+        body_html: { type: string, description: Sanitized HTML }
+        status: { type: string, enum: [visible, hidden, removed] }
+        version: { type: integer, minimum: 1 }
+        created_at: { type: string, format: date-time }
+    PostList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Post" }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string }
+                  message: { type: string }
+  responses:
+    ValidationError:
+      description: Request body or parameters are invalid (code VALIDATION_ERROR)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthenticated:
+      description: Missing or unknown user (code UNAUTHENTICATED)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotAMember:
+      description: Caller is not a member of community_id (code NOT_A_MEMBER)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    CommunityNotFound:
+      description: community_id does not exist (code COMMUNITY_NOT_FOUND)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    PostNotFound:
+      description: Post does not exist or caller is outside its audience (code POST_NOT_FOUND)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
