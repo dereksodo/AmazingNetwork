@@ -195,3 +195,10 @@ Add notes under any question. When you're done, tell me and I'll build the repor
 
 **Notes / anything else:**
 please do not push and commit anything. only keep track of files locally
+
+
+---
+
+# Assignment 2
+
+Decisions are recorded as ADR-005 to ADR-007 and as amendments of ADR-001 to ADR-004 in `docs/adr/`. Changed requirements are in `docs/requirements-status.md`.
