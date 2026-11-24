@@ -18,14 +18,14 @@ AI1220 · November 2026 · <https://github.com/dereksodo/AmazingNetwork> · tag 
 
 ## Ownership
 
-Planned ownership from Assignment 1. Each member confirms the row and adds links to their own pull requests before submission.
+Each member presents and maintains the parts below. All commits of this release were made by Jiadong.
 
-| Member | GitHub | System parts | Documentation file | Main pull requests |
+| Member | GitHub | System parts | Documentation file | Pull request with the code |
 |---|---|---|---|---|
-| Jiadong Zhang | dereksodo | auth, people, communities, content, messaging, policy, models | docs/openapi.json, backend/README.md | to be added |
-| Nura | NuraAlMheiri | realtime, collab, frontend/src/live, CI | docs/websocket.md | to be added |
-| Fatima | fatimalmazrouei13 | frontend: pages, components, editor | frontend/README.md | to be added |
-| Zayed | ZayedAlNahyan | moderation, AI, audit, tests | docs/requirements-status.md | to be added |
+| Jiadong Zhang | dereksodo | Audience policy and models, content, realtime, Yjs co-editing (backend and frontend), AI triage | docs/openapi.json, docs/websocket.md, docs/adr/ | [#1](https://github.com/dereksodo/AmazingNetwork/pull/1) |
+| Fatima | fatimalmazrouei13 | Frontend pages, components, rich-text editor | frontend/README.md | [#1](https://github.com/dereksodo/AmazingNetwork/pull/1) |
+| Nura | NuraAlMheiri | Auth, people, communities, messages, notifications; CI | backend/README.md, README.md | [#1](https://github.com/dereksodo/AmazingNetwork/pull/1) |
+| Sheikh Zayed | ZayedAlNahyan | Moderation, appeals, admin, audit log; demo data | docs/requirements-status.md, docs/demo-script.md | [#1](https://github.com/dereksodo/AmazingNetwork/pull/1) |
 
 <div class="page"></div>
 
