@@ -23,3 +23,14 @@ docs/report/report.html
 
 # Report build cache
 docs/report/.vendor/
+
+# Local database
+*.db
+*.db-shm
+*.db-wal
+
+# Tool caches
+.ruff_cache/
+.claude/
+
+docs/summary/summary.html
