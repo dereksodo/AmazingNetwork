@@ -18,3 +18,5 @@
 - Obviously harmful content still waits for a human; we accept this to protect fairness and appeals.
 - Moderator agree/disagree is recorded, giving an ongoing accuracy measure (NFR-12) and a basis to change prompts (`prompt_version` stored per suggestion).
 - Switching to another provider or a local model touches one class only, which keeps the option open if the university rejects external processing (Q3).
+
+**Amendment, Assignment 2.** Advisory, asynchronous and behind an interface, as decided. Changes: (1) the call runs as a FastAPI background task, not in a worker (ADR-006); (2) one provider class speaks the OpenAI-compatible chat API, so LM Studio, DeepSeek and others differ only in environment variables; (3) one attempt with one overall deadline (`CONNECT_LLM_TIMEOUT_SECONDS`) replaces two automatic retries, and moderators can ask again, because retries would keep a report without a result for half a minute; (4) there is no mock provider in the product: without a model, reports are simply unscored. Tests inject a fake provider.

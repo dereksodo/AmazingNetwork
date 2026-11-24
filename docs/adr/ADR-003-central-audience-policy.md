@@ -19,3 +19,5 @@
 - Small extra cost per event (a policy check per recipient); acceptable at campus scale, and cached membership sets keep it cheap.
 - New endpoints must use the policy; a CI test lists all routes and fails if a content route lacks the policy dependency.
 - Visibility changes take effect immediately because nothing caches permission decisions beyond one request.
+
+**Amendment, Assignment 2.** The rule now exists once, as a SQL condition (`visible_posts` in `backend/app/policy.py`). A single read evaluates the same condition for one id, so lists and single reads cannot disagree. Changes: moderators see reported content even if its author blocked them; a reshare is visible only while its original is; authors no longer see their own *removed* posts. The route-listing CI test was replaced by tests that probe every content path as an outsider (`test_audience.py`).
