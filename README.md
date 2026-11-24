@@ -46,7 +46,7 @@ cd frontend && npm run dev
 
 Every setting is in [.env.example](.env.example). `.env` is git-ignored.
 
-**AI model.** The default is `qwen/qwen3-4b` in LM Studio: load it and start the local server on port 1234. Any OpenAI-compatible server works by changing settings only, for example DeepSeek:
+**AI model.** The default is `gpt-6.1-terra` from OpenAI: put your key in `CONNECT_LLM_API_KEY` in `.env`. For a local model, load `qwen/qwen3-4b` in LM Studio, start its server and set `CONNECT_LLM_BASE_URL=http://localhost:1234/v1` and `CONNECT_LLM_MODEL=qwen/qwen3-4b`. Any OpenAI-compatible server works by changing settings only, for example DeepSeek:
 
 ```text
 CONNECT_LLM_BASE_URL=https://api.deepseek.com

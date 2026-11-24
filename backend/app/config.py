@@ -12,7 +12,7 @@ CORS_ORIGINS = _list("CONNECT_CORS_ORIGINS", "http://localhost:5173,http://127.0
 EMAIL_DOMAIN = os.environ.get("CONNECT_EMAIL_DOMAIN", "campus.example")
 SESSION_IDLE_DAYS = 7
 
-LLM_BASE_URL = os.environ.get("CONNECT_LLM_BASE_URL", "http://localhost:1234/v1")
-LLM_MODEL = os.environ.get("CONNECT_LLM_MODEL", "qwen/qwen3-4b")
+LLM_BASE_URL = os.environ.get("CONNECT_LLM_BASE_URL", "https://api.openai.com/v1")
+LLM_MODEL = os.environ.get("CONNECT_LLM_MODEL", "gpt-6.1-terra")
 LLM_API_KEY = os.environ.get("CONNECT_LLM_API_KEY", "")
 LLM_TIMEOUT_SECONDS = float(os.environ.get("CONNECT_LLM_TIMEOUT_SECONDS", "20"))

@@ -42,7 +42,6 @@ class OpenAICompatibleProvider:
         """Call the model; raises TimeoutError, httpx.HTTPError or pydantic.ValidationError."""
         request = {
             "model": config.LLM_MODEL,
-            "temperature": 0,
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
         }
         # One deadline for the whole call; httpx's own timeouts only limit single reads.
