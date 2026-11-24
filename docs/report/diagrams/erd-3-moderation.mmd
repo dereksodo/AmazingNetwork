@@ -1,0 +1,76 @@
+%% Entity relationship diagram, part 3 — moderation, AI triage, notifications and audit
+%% Entities drawn without attributes are defined in another part.
+erDiagram
+  USER ||--o{ REPORT : "files"
+  USER ||--o{ MODERATION_ACTION : "takes (moderator)"
+  USER ||--o{ USER_SANCTION : "receives"
+  USER ||--o{ NOTIFICATION : "receives"
+  USER ||--o{ AUDIT_LOG : "acts in"
+  MESSAGE ||--o{ REPORTED_MESSAGE : "excerpted in"
+  REPORT ||--o{ REPORTED_MESSAGE : "attaches"
+  REPORT ||--o| AI_SUGGESTION : "triaged by"
+  REPORT ||--o{ MODERATION_ACTION : "leads to"
+  MODERATION_ACTION ||--o| APPEAL : "appealed by"
+  MODERATION_ACTION ||--o| USER_SANCTION : "creates"
+
+  REPORT {
+    bigint id PK
+    uuid reporter_id FK
+    enum target_type "post | comment | user | message"
+    bigint target_id
+    enum reason "harassment | hate | spam | sexual | violence | misinformation | other"
+    text note
+    enum status "open | scored | unscored | dismissed | actioned"
+  }
+  REPORTED_MESSAGE {
+    bigint report_id PK,FK
+    bigint message_id PK,FK
+    text body_copy "frozen copy shown to moderator"
+  }
+  AI_SUGGESTION {
+    bigint report_id PK,FK
+    enum category
+    enum severity "low | medium | high"
+    text rationale "max 300"
+    text model
+    text prompt_version
+    bool moderator_agreed "null until decided"
+  }
+  MODERATION_ACTION {
+    bigint id PK
+    bigint report_id FK
+    uuid moderator_id FK
+    enum action "dismiss | hide | remove | notice | mute"
+    text reason
+    timestamptz created_at
+  }
+  APPEAL {
+    bigint id PK
+    bigint action_id FK,UK "one appeal per action"
+    uuid reviewer_id FK "CHECK != action moderator"
+    text statement
+    enum status "pending | upheld | overturned"
+    timestamptz created_at "CHECK within 7 days of action"
+  }
+  USER_SANCTION {
+    bigint id PK
+    uuid user_id FK
+    bigint action_id FK
+    enum kind "mute"
+    timestamptz ends_at "24h, 7d or 30d"
+  }
+  NOTIFICATION {
+    bigint id PK
+    uuid user_id FK
+    enum type "reply | mention | announcement | event_change | system_notice | appeal_result"
+    jsonb payload
+    timestamptz read_at
+  }
+  AUDIT_LOG {
+    bigint id PK
+    uuid actor_id FK
+    text action
+    text target
+    jsonb metadata
+    timestamptz at "insert-only"
+  }

@@ -1,0 +1,46 @@
+%% Entity relationship diagram, part 2 — collaborative drafts and direct messages
+%% Entities drawn without attributes are defined in another part.
+erDiagram
+  COMMUNITY ||--o{ DRAFT : "owns"
+  USER ||--o{ DRAFT_COLLABORATOR : "collaborates"
+  DRAFT |o--o| POST : "published as"
+  USER ||--o{ CONVERSATION_MEMBER : "in"
+  DRAFT ||--o{ DRAFT_COLLABORATOR : "edited by"
+  DRAFT ||--o{ DRAFT_UPDATE : "logs"
+  CONVERSATION ||--|{ CONVERSATION_MEMBER : "between"
+  CONVERSATION ||--o{ MESSAGE : "contains"
+
+  DRAFT {
+    bigint id PK
+    bigint community_id FK
+    enum kind "announcement | event"
+    bytea yjs_snapshot
+    int version
+    enum status "editing | published"
+    bigint published_post_id FK,UK
+  }
+  DRAFT_COLLABORATOR {
+    bigint draft_id PK,FK
+    uuid user_id PK,FK
+  }
+  DRAFT_UPDATE {
+    bigint id PK
+    bigint draft_id FK
+    bytea update
+    timestamptz created_at
+  }
+  CONVERSATION {
+    bigint id PK
+    timestamptz created_at
+  }
+  CONVERSATION_MEMBER {
+    bigint conversation_id PK,FK
+    uuid user_id PK,FK "exactly 2 per conversation"
+  }
+  MESSAGE {
+    bigint id PK
+    bigint conversation_id FK
+    uuid sender_id FK
+    text body "max 2000"
+    timestamptz created_at
+  }
