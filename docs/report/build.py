@@ -60,7 +60,7 @@ def embed_diagrams(body_html: str) -> str:
         return (
             f'<figure class="{cls}" id="fig-{name}">'
             f'<pre class="mermaid">{code}</pre>'
-            f"<figcaption>{caption} <span class=\"src\">(source: docs/diagrams/{src.name})</span></figcaption>"
+            f"<figcaption>{caption} <span class=\"src\">(source: docs/report/diagrams/{src.name})</span></figcaption>"
             f"</figure>"
         )
 

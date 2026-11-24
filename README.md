@@ -1,23 +1,21 @@
-# Connect — Campus Social Network (AI1220 Assignment 1)
+# Connect: Campus Social Network (AI1220)
 
-Connect is a social network for the university community: students and groups share updates, hold discussions, co-write announcements and events, and control who sees their content. Moderators handle reports, with help from an AI triage assistant.
+Students and student groups share updates, discuss, co-write announcements and events, and control who sees their content. Moderators handle reports with an advisory AI assistant.
 
 | What | Where |
 |---|---|
-| Report (PDF, submitted) | [`docs/report/Connect_Report.pdf`](docs/report/Connect_Report.pdf) — source: [`docs/report/report.md`](docs/report/report.md) |
-| Diagram sources (Mermaid) | [`docs/diagrams/`](docs/diagrams/) |
-| Architecture decision records | [`docs/adr/`](docs/adr/) |
-| Interface contract used by the PoC | [`shared/contracts/openapi.yaml`](shared/contracts/openapi.yaml) |
-| Proof of concept — backend | [`backend/`](backend/) (FastAPI) |
-| Proof of concept — frontend | [`frontend/`](frontend/) (plain HTML + JS) |
-| 3-minute demo script | [`docs/demo-script.md`](docs/demo-script.md) |
-| Team decisions log | [`DECISIONS.md`](DECISIONS.md) |
+| Summary of Assignment 2 (PDF) | [docs/summary.pdf](docs/summary.pdf) |
+| API specification | [docs/openapi.json](docs/openapi.json), live at http://127.0.0.1:8000/docs |
+| WebSocket channels | [docs/websocket.md](docs/websocket.md) |
+| Requirements status and traceability | [docs/requirements-status.md](docs/requirements-status.md) |
+| Diagrams, decisions | [docs/diagrams/](docs/diagrams/), [docs/adr/](docs/adr/) |
+| How the code is organized | [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md) |
+| Demonstration | [docs/demo-script.md](docs/demo-script.md) |
+| Assignment 1 report | [docs/report/Connect_Report.pdf](docs/report/Connect_Report.pdf) |
 
-## Proof of concept: setup and run
+## Install and run
 
-Requirements: Python 3.11+ and a web browser. Nothing else needs to be installed by hand: no database, no paid API keys. All data is fictional and kept in memory.
-
-### Quick start (macOS / Linux)
+Needs Python 3.11 or newer and Node.js 20.19+ or 22.12+, on macOS or Linux (Windows: WSL).
 
 ```bash
 git clone https://github.com/dereksodo/AmazingNetwork.git
@@ -25,99 +23,37 @@ cd AmazingNetwork
 ./run.sh
 ```
 
-`run.sh` does everything for you:
+The first run installs everything, creates `.env` from `.env.example` and loads the demonstration data. Open http://localhost:5173 and sign in as `aisha@campus.example` with the password `demo-password`. Other handles: `omar`, `lina` (owner of Robotics Club), `karim` (officer), `yusuf`, `sam` and `maya` (moderators), `dean` (school admin). Each browser tab has its own sign-in.
 
-1. checks that Python is 3.11 or newer;
-2. on the first run, creates `backend/.venv` and installs the packages from `backend/requirements-dev.txt` (FastAPI, uvicorn, nh3, pytest, …). This takes about a minute and needs internet. Later runs skip this step unless the requirements files change;
-3. starts the backend on port 8000 and serves the frontend on port 5173.
-
-Then open:
-
-- http://localhost:5173: the PoC client. Pick a fictional user, create a post, then fetch it or switch user to see the audience rules.
-- http://127.0.0.1:8000/docs: interactive API docs.
-- http://127.0.0.1:8000/api/v1/health: should show `{"status":"ok"}`.
-
-Press **Ctrl+C** to stop both servers.
-
-Run the tests (29 tests, including a contract test that fails if the backend drifts from `shared/contracts/openapi.yaml`):
-
-```bash
-./run.sh test
-```
-
-### Manual setup (Windows, or if you prefer)
-
-**Terminal 1: backend**
-
-```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate            # macOS / Linux: source .venv/bin/activate
-pip install -r requirements-dev.txt
-uvicorn app.main:app --port 8000
-```
-
-**Terminal 2: frontend**
-
-```bash
-cd frontend
-python -m http.server 5173
-```
-
-**Tests**: inside `backend/`, with the venv active, run `pytest`.
-
-### Troubleshooting
-
-| Problem | Fix |
+| Command | Does |
 |---|---|
-| `Python 3.11 or newer is required` | Install a recent Python, or run `PYTHON=python3.12 ./run.sh` |
-| `Address already in use` | Another program is using port 8000 or 5173; stop it, or close an old `run.sh` |
-| Frontend says "Is the backend running?" | Start the backend first and check the health URL above |
-| `permission denied: ./run.sh` | `chmod +x run.sh` or `bash run.sh` |
-| Packages look broken | Delete `backend/.venv` and run `./run.sh` again |
+| `./run.sh` | starts backend (8000) and frontend (5173) |
+| `./run.sh seed` | replaces **all** data with the demonstration data (stop the product first) |
+| `./run.sh test` | runs the backend tests |
+| `./run.sh lint` | checks Ruff, Prettier and ESLint |
 
-### Fictional users
-
-| `X-Demo-User` | Who | Memberships |
-|---|---|---|
-| `aisha` | Student | Robotics Club (1) |
-| `omar` | Student | Chess Society (2); follows Aisha |
-| `lina` | Officer | Robotics Club (1) |
-| `sam` | Moderator | — (can view all posts) |
-
-### What the PoC simplifies (see report §4)
-
-| Planned architecture | Proof of concept |
-|---|---|
-| React + TipTap rich-text editor | Plain HTML page; rich text typed as HTML in a textarea |
-| University SSO (OIDC) + session token | Mock header `X-Demo-User` |
-| PostgreSQL | In-memory repository with the same methods |
-| Redis, WebSocket gateway, worker, LLM | Not included |
-| Rate limiting, audit log | Not included |
-
-## Rebuilding the report PDF
-
-The report is written in Markdown and the diagrams in Mermaid. After editing either:
+To start the two servers by hand after the first run:
 
 ```bash
-pip install markdown
-python docs/report/build.py      # needs Google Chrome; writes docs/report/Connect_Report.pdf
+cd backend && .venv/bin/uvicorn app.main:app --port 8000 --env-file ../.env
 ```
 
-## Configuration and secrets
-
-Configuration comes from environment variables; see [`.env.example`](.env.example). Real values go in `.env`, which is git-ignored. The browser never receives secrets: the LLM key (Assignment 2) is read only by the backend worker.
-
-## Repository layout
-
+```bash
+cd frontend && npm run dev
 ```
-run.sh              One-command local start (installs dependencies)
-backend/            FastAPI app (app/api, app/policy.py, app/store.py) and tests/
-frontend/           PoC browser client (React app in Assignment 2)
-shared/contracts/   OpenAPI contract shared by frontend and backend
-docs/report/        report.md → Connect_Report.pdf
-docs/diagrams/      Mermaid sources for C4, sequence and ER diagrams
-docs/adr/           Architecture decision records
-infra/              Local infrastructure config (docker-compose in Assignment 2)
-.github/            CI workflow, CODEOWNERS, PR template
+
+## Configuration
+
+Every setting is in [.env.example](.env.example). `.env` is git-ignored.
+
+**AI model.** The default is `gpt-6.1-terra` from OpenAI: put your key in `CONNECT_LLM_API_KEY` in `.env`. For a local model, load `qwen/qwen3-4b` in LM Studio, start its server and set `CONNECT_LLM_BASE_URL=http://localhost:1234/v1` and `CONNECT_LLM_MODEL=qwen/qwen3-4b`. Any OpenAI-compatible server works by changing settings only, for example DeepSeek:
+
+```text
+CONNECT_LLM_BASE_URL=https://api.deepseek.com
+CONNECT_LLM_MODEL=deepseek-chat
+CONNECT_LLM_API_KEY=<your key>
 ```
+
+Without a model everything else works; reports are shown as "unscored".
+
+Data is stored in `backend/connect.db` and survives restarts. All data is fictional.

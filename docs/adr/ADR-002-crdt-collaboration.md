@@ -19,3 +19,5 @@
 - Drafts are stored as binary state, so the server cannot validate content until publish; validation and sanitizing happen at publish time.
 - Team must learn Yjs; risk R1 mitigated by a week-1 spike. Fallback: option 2 behind the same WebSocket endpoint.
 - Only drafts use CRDTs; published posts use ordinary versioned rows with `If-Match` (409 on conflict).
+
+**Amendment, Assignment 2.** The decision stands and is implemented. Three simplifications: (1) the merged document is stored in `draft.ydoc` on every update instead of an update log with snapshots, because one SQLite write per update is fast enough and there is nothing to compact; (2) frames are JSON with base64 updates on our own small protocol (`docs/websocket.md`) instead of the binary y-websocket protocol, so that authentication, acknowledgements and errors use one format; (3) `expected_version` is the number of accepted updates, so an officer can only publish the text they have seen. Access is re-checked for every frame and every recipient.

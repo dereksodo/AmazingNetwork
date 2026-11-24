@@ -14,6 +14,8 @@ Repository: <https://github.com/dereksodo/AmazingNetwork> · October 2026 · All
 
 </div>
 
+> **Revision after feedback (November 2026).** This report describes the design of Assignment 1. The traceability matrix (§1.5), the interfaces (§2.4) and the data model (§2.6) were corrected: every requirement is traced; follow, block and mute endpoints are listed; post versions, images, reshares, muted communities and study programmes are stored. The system as built in Assignment 2 is described in `docs/summary.pdf`, `docs/diagrams/` and `docs/requirements-status.md`. The proof of concept of §4 is in the Git history at commit `7a85bf6`.
+
 [TOC]
 
 # 0 Product overview
@@ -345,17 +347,27 @@ Each requirement describes observable behaviour and can be tested. "Shall" marks
 
 **Traceability matrix.** Component IDs refer to §2.2 (C-* containers, K-* API components).
 
+Every requirement appears in at least one row. Requirements that serve two needs appear twice.
+
 | Need | Requirements | Stories | Architecture components | ADR |
 |---|---|---|---|---|
-| SN-1 share and discuss | FR-PUB-1/2/5/6, FR-INT-1/2/4 | US-2 | C-WEB, K-POST, K-POLICY, C-DB | ADR-003 |
-| SN-2 control audience | FR-AUD-1–6, FR-COM-4 | US-2 | K-POLICY, K-POST, K-RT | ADR-003 |
-| SN-3 private messages, safe from harassment | FR-INT-6, FR-AUD-3, FR-MOD-1/8 | US-5 | K-DM, K-MOD, K-RT | ADR-003 |
-| SN-4 co-write and reach members | FR-COL-1–6, FR-PUB-3/4 | US-1 | K-COLLAB, K-RT, K-BUS, C-REDIS | ADR-002 |
-| SN-5 handle reports quickly and fairly | FR-MOD-1–5, FR-AI-1–6 | US-3, US-4 | K-MOD, K-AI, C-WRK | ADR-004 |
-| SN-6 verified, accountable | FR-ID-1/3, FR-MOD-6, NFR-10 | US-4, US-6 | K-AUTH, K-AUDIT, K-MOD | ADR-001 |
-| SN-7 campus announcements | FR-PUB-3, FR-INT-5 | US-6 | K-POST, K-NOTIF | — |
-| SN-8 buildable and testable | TC-1–5, NFR-11 | all | repository structure, CI | ADR-001 |
-| SN-9 cope with growth | NFR-1–5 | US-1, US-2 | K-RT, K-BUS, C-REDIS, C-DB | ADR-001 |
+| SN-1 share and discuss | FR-COM-1, FR-COM-2, FR-COM-3 | US-2 | C-WEB, K-COMM, K-POLICY, C-DB | ADR-001 |
+| SN-1 share and discuss | FR-PUB-1, FR-PUB-2, FR-PUB-5, FR-PUB-6 | US-2 | C-WEB, K-POST, K-POLICY, C-DB, C-OBJ | ADR-003 |
+| SN-1 share and discuss | FR-INT-1, FR-INT-2, FR-INT-3, FR-INT-4 | US-2 | K-POST, K-PEOPLE, K-COMM, K-RT | ADR-003 |
+| SN-2 control audience | FR-AUD-1, FR-AUD-2, FR-AUD-4, FR-AUD-5, FR-AUD-6 | US-2 | K-POLICY, K-POST, K-NOTIF, K-RT | ADR-003 |
+| SN-2 control audience | FR-INT-3 (follow approval), FR-AUD-3 (blocking) | US-2, US-5 | K-PEOPLE, K-POLICY | ADR-003 |
+| SN-2 control audience | FR-COM-4 | US-2 | K-COMM, K-POLICY, K-RT | ADR-003 |
+| SN-3 private messages, safe from harassment | FR-INT-6, FR-AUD-3, FR-MOD-1, FR-MOD-8 | US-5 | K-DM, K-PEOPLE, K-MOD, K-RT | ADR-003 |
+| SN-4 co-write and reach members | FR-COL-1 – FR-COL-6 | US-1 | K-COLLAB, K-RT, K-BUS, C-REDIS | ADR-002 |
+| SN-4 co-write and reach members | FR-PUB-3, FR-PUB-4, FR-INT-5 | US-1 | K-POST, K-NOTIF, K-COLLAB | ADR-002 |
+| SN-5 handle reports quickly and fairly | FR-MOD-1 – FR-MOD-5, FR-MOD-7, FR-MOD-9 | US-3, US-4, US-5 | K-MOD, K-NOTIF, K-AUDIT | ADR-004 |
+| SN-5 handle reports quickly and fairly | FR-AI-1 – FR-AI-6, NFR-12 | US-3 | K-AI, C-WRK | ADR-004 |
+| SN-6 verified, accountable | FR-ID-1 – FR-ID-5 | US-6 | K-AUTH, C-DB, C-WRK | ADR-001 |
+| SN-6 verified, accountable | FR-COM-1 (approval), FR-MOD-6, NFR-6, NFR-7, NFR-10 | US-4, US-6 | K-COMM, K-AUDIT, K-MOD, K-AUTH | ADR-001, ADR-003 |
+| SN-7 campus announcements | FR-PUB-3, FR-INT-5 | US-6 | K-POST, K-NOTIF | ADR-002 |
+| SN-8 buildable and testable | TC-1 – TC-5, NFR-11 | all | repository structure, CI | ADR-001 |
+| SN-9 cope with growth | NFR-1 – NFR-5 | US-1, US-2 | K-RT, K-BUS, C-REDIS, C-DB | ADR-001 |
+| SN-1, SN-4 usable by everyone | NFR-8 (usability), NFR-9 (accessibility) | US-1, US-2 | C-WEB | — |
 
 # 2 System Architecture
 
@@ -374,13 +386,13 @@ Each requirement describes observable behaviour and can be tested. "Shall" marks
 
 ### System context
 
-![System context diagram — Connect, its users and external systems](../diagrams/c4-context.mmd)
+![System context diagram — Connect, its users and external systems](diagrams/c4-context.mmd)
 
 Connect is one software system used by four kinds of people through a browser. It depends on three external systems: **University SSO** proves that a person is a university member (FR-ID-1); the **DeepSeek LLM API** gives triage suggestions (FR-AI-1); **university email** delivers sign-in and appeal-result emails. All three are mocked in development so the system can be built and demonstrated without them.
 
 ### Containers
 
-![Container diagram — applications and data stores inside Connect](../diagrams/c4-container.mmd "landscape")
+![Container diagram — applications and data stores inside Connect](diagrams/c4-container.mmd "landscape")
 
 | ID | Container | Responsibility | Technology |
 |---|---|---|---|
@@ -395,9 +407,9 @@ The browser talks only to C-API (and to C-OBJ through URLs that C-API signs). On
 
 ### Components of the API Application
 
-![Component diagram — inside the API Application](../diagrams/c4-component-api.mmd "landscape")
+![Component diagram — inside the API Application](diagrams/c4-component-api.mmd "landscape")
 
-We chose the API Application because it holds the rules that the requirements care most about. **REST routers** (K-HTTP) and the **Realtime Gateway** (K-RT) are the only entry points; both authenticate through **Auth & Session** (K-AUTH). Feature modules — **Communities** (K-COMM), **Content** (K-POST), **Direct Messages** (K-DM), **Collaboration** (K-COLLAB) and **Moderation** (K-MOD) — ask the **Audience Policy** (K-POLICY) before reading or changing anything. The Realtime Gateway asks K-POLICY again for each recipient before sending an event. Moderation writes to the **Audit Logger** (K-AUDIT) and asks the **AI Triage client** (K-AI) to enqueue a job. Domain events go through the **Event Bus adapter** (K-BUS) to Redis and come back to every instance's gateway. **Repositories** (K-REPO) are the only code that touches the database.
+We chose the API Application because it holds the rules that the requirements care most about. **REST routers** (K-HTTP) and the **Realtime Gateway** (K-RT) are the only entry points; both authenticate through **Auth & Session** (K-AUTH). Feature modules — **People** (K-PEOPLE), **Communities** (K-COMM), **Content** (K-POST), **Direct Messages** (K-DM), **Collaboration** (K-COLLAB) and **Moderation** (K-MOD) — ask the **Audience Policy** (K-POLICY) before reading or changing anything. The Realtime Gateway asks K-POLICY again for each recipient before sending an event. Moderation writes to the **Audit Logger** (K-AUDIT) and asks the **AI Triage client** (K-AI) to enqueue a job. Domain events go through the **Event Bus adapter** (K-BUS) to Redis and come back to every instance's gateway. **Repositories** (K-REPO) are the only code that touches the database.
 
 **Main technology choices and how they fit Assignment 2**
 
@@ -422,7 +434,7 @@ We chose the API Application because it holds the rules that the requirements ca
 
 **Moderation and appeals (D3).** Reports and actions follow the state machine below. Hiding and removing are status changes on the content row; the purge job deletes removed content after 30 days. Each action and its audit entry are written in one transaction. The appeal endpoint checks the 7-day window and uniqueness; a database constraint prevents the original moderator from reviewing the appeal.
 
-![Report and moderation state machine](../diagrams/moderation-states.mmd)
+![Report and moderation state machine](diagrams/moderation-states.mmd)
 
 **AI feature (D4, ADR-004).** Filing a report commits it immediately (202). K-AI enqueues `triage(report_id)`; the worker loads the text, strips mentions and names, wraps the text in delimiters, calls the provider with a 10 s timeout and 2 retries, validates the JSON against the schema and stores an `AI_SUGGESTION`, then publishes `report.scored` to the moderation channel. Any failure marks the report `unscored`. The AI has no endpoint or permission that can change content.
 
@@ -443,7 +455,7 @@ We chose the API Application because it holds the rules that the requirements ca
 
 ### Sequence diagram: co-editing and publishing an event draft
 
-![Sequence diagram — two officers co-edit a draft and both press Publish](../diagrams/sequence-collab-publish.mmd)
+![Sequence diagram — two officers co-edit a draft and both press Publish](diagrams/sequence-collab-publish.mmd)
 
 *Concurrent action.* Steps in the first `par` block happen at the same time. Each update is appended to the log and broadcast through Redis, so it reaches officers connected to any API instance. Because Yjs merges are commutative, A and B converge to the same document whatever order updates arrive in. In the second `par` block both officers press Publish with `expected_version 17`; PostgreSQL's row lock lets one conditional update succeed and the other update zero rows, which K-COLLAB turns into **409 ALREADY_PUBLISHED**.
 
@@ -455,7 +467,8 @@ We chose the API Application because it holds the rules that the requirements ca
 |---|---|
 | Sign-in, sessions, roles, mute check | K-AUTH |
 | Visibility, membership, block and role decisions | K-POLICY |
-| Communities, joining, roles | K-COMM |
+| Profiles, follows, blocks | K-PEOPLE |
+| Communities, joining, roles, following and muting a community | K-COMM |
 | Posts, discussions, announcements, events, comments, reactions, RSVPs, sanitizing | K-POST |
 | Direct messages | K-DM |
 | Draft rooms, persistence, publish | K-COLLAB |
@@ -491,13 +504,31 @@ We chose the API Application because it holds the rules that the requirements ca
 | POST `/admin/communities/{id}/approve` | admin | decision | 200 | 403 `NOT_ADMIN` |
 | POST `/communities/{id}/join` | signed in | — | 200 joined / 202 requested | 409 `ALREADY_MEMBER` |
 | DELETE `/communities/{id}/members/me` | member | — | 204 | — |
-| PATCH `/communities/{id}/members/{user}` | owner | role | 200 | 403 `NOT_OWNER` |
+| PATCH `/communities/{id}/members/{user}` | owner | role | 204 | 403 `NOT_OWNER` |
+| DELETE `/communities/{id}/members/{user}` | owner | — | 204 | 403 `NOT_OWNER`, 409 `OWNER_CANNOT_LEAVE` |
+| POST `/communities/{id}/requests/{user}` | officer | accept | 204 | 403 `NOT_AN_OFFICER`, 404 `REQUEST_NOT_FOUND` |
+| PUT / DELETE `/communities/{id}/follow` | signed in | — | 204 | 404 `COMMUNITY_NOT_FOUND` |
+| PUT / DELETE `/communities/{id}/mute` | signed in | — | 204 | 404 `COMMUNITY_NOT_FOUND` |
+| PATCH / DELETE `/me` | signed in | profile fields, programme, approve_followers | 200 / 204 | — |
+| GET `/users/{id}` | signed in, no block | — | 200 profile | 404 `USER_NOT_FOUND` |
+| PUT / DELETE `/users/{id}/follow` | signed in, no block | — | 200 pending / active, 204 | 400 `NOT_YOURSELF`, 404 `USER_NOT_FOUND` |
+| GET `/follow-requests` | signed in | — | 200 users | — |
+| POST `/follow-requests/{user}` | followed user | accept | 204 | 404 `REQUEST_NOT_FOUND` |
+| DELETE `/followers/{user}` | followed user | — | 204 | — |
+| GET `/blocks` | signed in | — | 200 users | — |
+| PUT / DELETE `/users/{id}/block` | signed in | — | 204 | 400 `NOT_YOURSELF`, 404 `USER_NOT_FOUND` |
 | **POST `/posts`** (C-POSTS) | signed in; member if community | type, community_id, visibility, title, body_html | 201 Post + `Location` | 403 `NOT_A_MEMBER`, 403 `MUTED`, 404 `COMMUNITY_NOT_FOUND` |
 | **GET `/posts`** (C-POSTS) | signed in | community_id?, limit | 200 visible posts | — |
 | **GET `/posts/{id}`** (C-POSTS) | in audience | — | 200 Post | 404 `POST_NOT_FOUND` |
 | PATCH `/posts/{id}` | author | fields + `If-Match: version` | 200 | 403, 409 `VERSION_CONFLICT` |
 | DELETE `/posts/{id}` | author | — | 204 | 403 |
+| GET `/posts/{id}/versions` | author, moderator | — | 200 earlier versions | 403 `NOT_AUTHOR` |
+| POST `/posts/{id}/images` | author | image, alt_text | 201 | 409 `TOO_MANY_IMAGES`, 413 `IMAGE_TOO_LARGE`, 415 `IMAGE_TYPE` |
+| POST `/posts/{id}/reshare` | in audience | body_html | 201 Post | 409 `NOT_RESHAREABLE` |
+| PUT `/posts/{id}/officer-controls` | officer | locked, pinned | 200 | 403 `NOT_AN_OFFICER`, 409 `TOO_MANY_PINS` |
 | POST `/posts/{id}/comments` | in audience | body, parent_id? | 201 | 403 `COMMENTS_DISABLED`, 423 `LOCKED` |
+| PATCH / DELETE `/comments/{id}` | author | body | 200 / 204 | 410 `EDIT_WINDOW_CLOSED` |
+| POST `/comments/{id}/officer-hide` | officer | reason, explanation, escalate | 204 | 403 `NOT_AN_OFFICER` |
 | PUT / DELETE `/posts/{id}/reactions/{kind}` | in audience | — | 204 | — |
 | PUT `/events/{id}/rsvp` | in audience | status | 200 going / waitlisted | 410 `RSVP_CLOSED` |
 | POST `/communities/{id}/drafts` | officer | kind, collaborator_ids | 201 draft | 403 `NOT_AN_OFFICER` |
@@ -586,15 +617,15 @@ Top-level folders follow C4 containers; backend packages follow C4 components, s
 
 ## 2.6 Data model
 
-![Entity relationship diagram, part 1 — people, communities and published content](../diagrams/erd-1-people-content.mmd "landscape")
+![Entity relationship diagram, part 1 — people, communities and published content](diagrams/erd-1-people-content.mmd "landscape")
 
-![Entity relationship diagram, part 2 — collaborative drafts and direct messages](../diagrams/erd-2-drafts-messages.mmd "landscape")
+![Entity relationship diagram, part 2 — collaborative drafts and direct messages](diagrams/erd-2-drafts-messages.mmd "landscape")
 
-![Entity relationship diagram, part 3 — moderation, AI triage, notifications and audit](../diagrams/erd-3-moderation.mmd "landscape")
+![Entity relationship diagram, part 3 — moderation, AI triage, notifications and audit](diagrams/erd-3-moderation.mmd "landscape")
 
 The ERD is split into three parts so it stays readable; entities shown without attributes (e.g. USER in parts 2 and 3) are defined in another part.
 
-**Entities.** USER, COMMUNITY and MEMBERSHIP model identity and groups (role per community). FOLLOW and BLOCK hold relationships used by the Audience Policy. POST holds all published types with EVENT as a 1:1 extension and RSVP, COMMENT and REACTION hanging off it. DRAFT, DRAFT_COLLABORATOR and DRAFT_UPDATE support co-editing. CONVERSATION, CONVERSATION_MEMBER and MESSAGE hold DMs. REPORT, REPORTED_MESSAGE, AI_SUGGESTION, MODERATION_ACTION, APPEAL and USER_SANCTION model moderation; NOTIFICATION and AUDIT_LOG support delivery and accountability.
+**Entities.** USER, STUDY_PROGRAMME, COMMUNITY and MEMBERSHIP model identity and groups (role per community). FOLLOW and BLOCK hold relationships used by the Audience Policy; COMMUNITY_FOLLOW and COMMUNITY_MUTE hold a user's feed and notification choices. POST holds all published types with EVENT as a 1:1 extension and RSVP, COMMENT and REACTION hanging off it. POST_VERSION keeps the content before each edit, POST_IMAGE the uploaded images, and `POST.reshare_of_id` links a reshare to its original. DRAFT, DRAFT_COLLABORATOR and DRAFT_UPDATE support co-editing. CONVERSATION, CONVERSATION_MEMBER and MESSAGE hold DMs. REPORT, REPORTED_MESSAGE, AI_SUGGESTION, MODERATION_ACTION, APPEAL and USER_SANCTION model moderation; NOTIFICATION and AUDIT_LOG support delivery and accountability.
 
 **Constraints and the requirements they enforce**
 
@@ -604,6 +635,12 @@ The ERD is split into three parts so it stays readable; entities shown without a
 | `MEMBERSHIP` primary key (user, community); role ∈ member/officer/owner | FR-ID-3, FR-COM-3 |
 | CHECK `visibility = 'community' ⇒ community_id IS NOT NULL`; CHECK `visibility = 'followers' ⇒ community_id IS NULL` | FR-AUD-1 |
 | CHECK `type IN ('announcement','event') ⇒ author is officer` (enforced in K-POLICY) | §0.5 table |
+| `USER.programme_id` references STUDY_PROGRAMME | FR-ID-2 |
+| `FOLLOW`, `BLOCK` primary key (user, user); CHECK both differ | FR-INT-3, FR-AUD-3 |
+| `COMMUNITY_MUTE` primary key (user, community) | FR-INT-5 |
+| `POST_VERSION` primary key (post, version) | FR-PUB-5 |
+| `POST_IMAGE` at most 4 per post, 5 MB each (enforced in K-POST) | FR-PUB-1 |
+| CHECK `reshare_of_id IS NOT NULL ⇒ visibility = 'campus'` | FR-AUD-5 |
 | `POST.version` with conditional update | FR-PUB-5, FR-COL-5 |
 | `DRAFT.published_post_id` unique | FR-COL-5 — a draft publishes once |
 | `EVENT.capacity > 0`, `ends_at > starts_at`; RSVP primary key (event, user) | FR-PUB-4 |

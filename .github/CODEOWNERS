@@ -6,17 +6,21 @@
 
 # B — Nura: real-time, collaboration, CI and infrastructure
 /backend/app/realtime/       @NuraAlMheiri
-/infra/                      @NuraAlMheiri
+/backend/app/collab/         @NuraAlMheiri
 /.github/                    @NuraAlMheiri
 
 # C — Fatima: frontend
 /frontend/                   @fatimalmazrouei13
 
+# B also owns the live connection (a later line wins)
+/frontend/src/live/          @NuraAlMheiri
+
 # D — Zayed: moderation, AI feature, tests, documentation
 /backend/app/moderation/     @ZayedAlNahyan
 /backend/app/ai/             @ZayedAlNahyan
+/backend/app/audit/          @ZayedAlNahyan
 /backend/tests/              @ZayedAlNahyan
 /docs/                       @ZayedAlNahyan
 
-# Contract changes need both a backend and a frontend reviewer.
-/shared/contracts/           @dereksodo @fatimalmazrouei13
+# API changes need both a backend and a frontend reviewer.
+/docs/openapi.json           @dereksodo @fatimalmazrouei13

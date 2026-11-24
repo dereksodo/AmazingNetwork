@@ -8,28 +8,33 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    defaults: { run: { working-directory: backend } }
     steps:
       - uses: actions/checkout@v4
-      - name: Check that the backend exists
-        id: has_backend
-        run: test -f backend/requirements-dev.txt && echo "yes=true" >> "$GITHUB_OUTPUT" || echo "No backend yet; skipping."
       - uses: actions/setup-python@v5
-        if: steps.has_backend.outputs.yes == 'true'
-        with:
-          python-version: "3.12"
-      - if: steps.has_backend.outputs.yes == 'true'
-        working-directory: backend
-        run: pip install -r requirements-dev.txt
-      - if: steps.has_backend.outputs.yes == 'true'
-        working-directory: backend
-        run: pytest
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements-dev.txt
+      - run: ruff format --check .
+      - run: ruff check .
+      - run: pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: frontend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run build
 
   secrets-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: { fetch-depth: 0 }
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

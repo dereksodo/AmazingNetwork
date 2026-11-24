@@ -1,12 +1,18 @@
-# Proof-of-concept demo script (≤ 3 minutes)
+# Demonstration script
 
-Before recording: run `./run.sh` (see the root README), and open http://localhost:5173 next to http://127.0.0.1:8000/docs.
+Start with `./run.sh seed`, then `./run.sh`. Open http://localhost:5173 in several tabs; each tab keeps its own sign-in. Every account is `<handle>@campus.example` with the password `demo-password`.
 
-| Time | Who speaks | Show | Say |
+| Step | Tabs | Do | Expect |
 |---|---|---|---|
-| 0:00–0:20 | Jiadong | README, repo tree | "Connect PoC: FastAPI backend and a plain browser client talking through contract C-POSTS in `shared/contracts/openapi.yaml`." |
-| 0:20–1:00 | Fatima | Frontend: signed in as Aisha, community = Robotics Club, visibility = community, body with `<b>` and a `<script>` tag → Send | "The request and response panels show exactly the fields in the contract. 201 Created, Location header, and the script tag was stripped by the server." |
-| 1:00–1:30 | Zayed | Switch user to Omar → fetch the same post id | "Omar isn't a Robotics member, so he gets 404 — the same answer as a post that doesn't exist, so hidden posts can't be discovered (FR-AUD-2)." Switch to Lina → 200. |
-| 1:30–2:00 | Nura | Create a discussion with no title → 400 VALIDATION_ERROR; select "nobody" → 401 | "Errors follow the contract's error format." |
-| 2:00–2:40 | Jiadong | Terminal: `pytest` | "29 tests, including a contract test that fails if the code drifts from the OpenAPI file, and table-driven tests of the audience policy." |
-| 2:40–3:00 | Any | README "What the PoC simplifies" table | "Simplified: no React, mock SSO, in-memory store, no WebSockets or AI. Everything else follows the planned architecture." |
+| 1 Live post | aisha, omar | Aisha publishes a post with a heading and bold text | It appears for Omar without reloading; formatting survives a reload |
+| 2 Refused access | omar | Open `/posts/2` (Robotics members only), then `/posts/99999` | The same "Post not found." Show the 404 in the developer tools |
+| 3 Co-editing | lina, karim | Both open Drafts → Spring competition and type at once | Both texts merge; presence and cursors |
+| 4 Reconnect | lina, karim | Stop the backend (Ctrl+C in its own terminal), type in both tabs, start it again | "Offline", then both edits appear in both tabs |
+| 5 Publish race | lina, karim | Both press Publish | One post; the other sees "already published" with a link |
+| 6 AI triage | lina, sam | Lina reports `/posts/7`; Sam has Moderation open | Report at once, suggestion a few seconds later; without a model "unscored" |
+| 7 Appeal | sam, yusuf, maya | Sam hides the post; Yusuf appeals in Settings; Maya overturns | Sam never sees the appeal; the post is back |
+| 8 Admin | dean | Approve Film Nights, export the audit log | CSV with every action |
+| 9 Lost access | lina, aisha | Lina removes Aisha from Robotics; Aisha reloads `/posts/1` | "Post not found." |
+| 10 Follow, block | omar | Follow Lina, then block Lina | Lina's posts disappear from Omar's lists |
+
+For step 4 start the two servers separately, as described in the root README.

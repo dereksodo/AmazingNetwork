@@ -1,0 +1,37 @@
+%% C4 Level 2 — Containers of Connect
+flowchart LR
+  users["<b>Students, officers,<br/>moderators, admins</b><br/><i>[People]</i>"]
+
+  subgraph boundary["Connect — system boundary"]
+    direction LR
+    web["<b>Web App</b> (C-WEB)<br/><i>[React, TypeScript,<br/>TipTap + Yjs]</i><br/>UI, rich-text editor,<br/>co-editing client,<br/>moderation console"]
+    api["<b>API Application</b> (C-API)<br/><i>[Python, FastAPI]</i><br/>REST + WebSocket endpoints,<br/>authorization, business rules,<br/>collaboration relay"]
+    worker["<b>Worker</b> (C-WRK)<br/><i>[Python]</i><br/>AI triage jobs, email,<br/>purges, mute expiry"]
+    db[("<b>Database</b> (C-DB)<br/><i>[PostgreSQL]</i><br/>All records incl.<br/>append-only audit log")]
+    redis[("<b>Broker</b> (C-REDIS)<br/><i>[Redis]</i><br/>Live-event pub/sub,<br/>job queue, presence,<br/>rate limits")]
+    obj[("<b>Object storage</b> (C-OBJ)<br/><i>[S3 / MinIO]</i><br/>Post images")]
+  end
+
+  sso["<b>University SSO</b><br/><i>[External, OIDC]</i>"]
+  llm["<b>DeepSeek LLM API</b><br/><i>[External, HTTPS]</i>"]
+  email["<b>University email</b><br/><i>[External, SMTP]</i>"]
+
+  users -- "HTTPS" --> web
+  web -- "REST/JSON (HTTPS)<br/>events + Yjs sync (WSS)" --> api
+  web -. "images via<br/>pre-signed URLs" .-> obj
+  api -- "SQL" --> db
+  api -- "pub/sub,<br/>enqueue jobs" --> redis
+  api -- "pre-signs URLs" --> obj
+  api -- "OIDC code exchange" --> sso
+  redis -- "jobs" --> worker
+  worker -- "reads reports,<br/>writes suggestions" --> db
+  worker -- "triage prompt → JSON" --> llm
+  worker -- "SMTP" --> email
+
+  classDef person fill:#08427b,stroke:#052e56,color:#fff
+  classDef container fill:#438dd5,stroke:#2e6295,color:#fff
+  classDef external fill:#8a8a8a,stroke:#6b6b6b,color:#fff
+  class users person
+  class web,api,worker,db,redis,obj container
+  class sso,llm,email external
+  style boundary fill:none,stroke:#1168bd,stroke-dasharray:6 4,color:#1168bd

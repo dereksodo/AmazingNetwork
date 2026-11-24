@@ -18,3 +18,5 @@
 - The API is stateless (sessions in DB, live events through Redis pub/sub), so it scales horizontally by running more instances (NFR-3).
 - Module boundaries are enforced only by convention and review (CODEOWNERS, import rules checked in CI), not by the network.
 - If one module later needs independent scaling (e.g. realtime), it can be split out along its existing interface.
+
+**Amendment, Assignment 2.** The modules are kept; the separate worker, Redis and PostgreSQL are not. See ADR-006.

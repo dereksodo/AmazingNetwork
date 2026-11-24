@@ -1,0 +1,259 @@
+:root {
+  --ink: #1b2430;
+  --muted: #55606e;
+  --line: #d5dbe3;
+  --paper: #ffffff;
+  --ground: #f3f5f8;
+  --accent: #0b5c8a;
+  --warn: #fff2cf;
+  --danger: #a3151f;
+  font-family: system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--ground);
+  line-height: 1.5;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+a {
+  color: var(--accent);
+}
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+main.narrow {
+  max-width: 420px;
+}
+h1 {
+  font-size: 1.5rem;
+}
+h2 {
+  font-size: 1.15rem;
+  margin: 0.4rem 0;
+}
+h3 {
+  font-size: 1rem;
+}
+.skip-link {
+  position: absolute;
+  left: -999px;
+}
+.skip-link:focus {
+  left: 1rem;
+  background: var(--paper);
+}
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.top nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+.top nav a {
+  text-decoration: none;
+  padding: 0.2rem 0;
+}
+a.active,
+a[aria-current='page'] {
+  font-weight: 700;
+  border-bottom: 2px solid var(--accent);
+}
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 0 0 1rem;
+  overflow-wrap: anywhere;
+}
+.row,
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: end;
+  margin: 0.4rem 0;
+}
+.row > a,
+.row > span {
+  align-self: center;
+}
+.plain {
+  list-style: none;
+  padding: 0;
+}
+.meta {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.tags {
+  float: right;
+}
+.tag {
+  display: inline-block;
+  font-size: 0.78rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 0.35rem;
+  margin-left: 0.25rem;
+}
+.field {
+  display: block;
+  margin: 0.4rem 0;
+  flex: 1 1 10rem;
+}
+.field > span {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+input:not([type='checkbox']),
+select {
+  width: 100%;
+  font: inherit;
+  padding: 0.45rem;
+  border: 1px solid #7f8a98;
+  border-radius: 5px;
+  background: var(--paper);
+  color: inherit;
+}
+button {
+  font: inherit;
+  min-height: 2.2rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+button.quiet,
+button[aria-pressed='false'],
+.toolbar button {
+  background: var(--paper);
+  color: var(--accent);
+  border-color: var(--line);
+}
+button[aria-pressed='true'],
+.toolbar button[aria-pressed='true'] {
+  background: #d9ecf7;
+  color: #083f5f;
+  border-color: var(--accent);
+}
+button.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.banner {
+  background: #e4f1f9;
+  border-radius: 5px;
+  padding: 0.5rem 0.8rem;
+}
+.banner.warning {
+  background: var(--warn);
+}
+.error {
+  color: var(--danger);
+  margin: 0.4rem 0;
+}
+.editor {
+  border: 1px solid #7f8a98;
+  border-radius: 5px;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  padding: 0.3rem;
+  border-bottom: 1px solid var(--line);
+}
+.toolbar button {
+  padding: 0.1rem 0.5rem;
+}
+.editor .tiptap {
+  min-height: 5rem;
+  padding: 0.5rem 0.8rem;
+}
+.editor.tall .tiptap {
+  min-height: 14rem;
+}
+.collaboration-carets__caret {
+  border-left: 2px solid;
+  position: relative;
+  margin: 0 -1px;
+}
+.collaboration-carets__label {
+  position: absolute;
+  top: -1.3em;
+  left: -1px;
+  color: #fff;
+  font-size: 0.72rem;
+  padding: 0 0.3rem;
+  white-space: nowrap;
+  border-radius: 3px;
+}
+.rich-text pre,
+.tiptap pre {
+  background: var(--ground);
+  padding: 0.6rem;
+  overflow-x: auto;
+}
+blockquote {
+  border-left: 3px solid var(--line);
+  margin: 0.5rem 0;
+  padding: 0.1rem 0.8rem;
+}
+.reported {
+  white-space: pre-wrap;
+}
+.images img {
+  max-width: 100%;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 5px;
+}
+.comment {
+  border-top: 1px solid var(--line);
+  padding: 0.5rem 0;
+}
+.comment p {
+  margin: 0.2rem 0;
+}
+.replies {
+  margin-left: 1.5rem;
+}
+.thread li {
+  max-width: 80%;
+  margin: 0.4rem 0;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  background: var(--ground);
+}
+.thread li.mine {
+  margin-left: auto;
+  background: #d9ecf7;
+}
+.thread p {
+  margin: 0;
+}

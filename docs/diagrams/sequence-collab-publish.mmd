@@ -1,64 +1,48 @@
-%% UML sequence — two officers co-edit an event announcement draft, then both try to publish
+%% UML sequence — two officers co-edit a draft, then both press Publish (as built)
 sequenceDiagram
   autonumber
   actor A as Officer A (Web App)
   actor B as Officer B (Web App)
-  participant RT as Realtime Gateway (K-RT)
   participant CO as Collaboration (K-COLLAB)
   participant PO as Audience Policy (K-POLICY)
-  participant R as Redis (C-REDIS)
-  participant DB as PostgreSQL (C-DB)
-
-  A->>RT: WSS connect /ws/drafts/42 (session token)
-  RT->>PO: can_act(A, edit, draft 42)?
-  PO-->>RT: allowed (officer of community 7)
-  RT->>CO: join(room draft:42, A)
-  CO->>DB: load snapshot + updates after snapshot
-  DB-->>CO: Yjs state (version 16)
-  CO-->>A: sync-step-2 {state, version: 16}, presence [A]
-  B->>RT: WSS connect /ws/drafts/42
-  Note over RT,CO: same authorization and sync as A
-  CO-->>B: sync-step-2 {state, version: 16}, presence [A, B]
-
-  par concurrent edits to the same sentence
-    A->>RT: yjs-update {bytes, client_id: A}
-    RT->>CO: apply(update A)
-    CO->>DB: INSERT draft_update (append-only)
-    CO->>R: PUBLISH draft:42 update A
-    R-->>RT: update A (fan-out to every API instance)
-    RT-->>B: yjs-update A
+  participant DB as SQLite (C-DB)
+  A->>CO: connect /ws/drafts/42, auth {token}
+  CO->>PO: get_editable_draft(A, 42)
+  PO-->>CO: collaborator and officer
+  A->>CO: sync {state_vector}
+  CO->>DB: load ydoc, version 16
+  CO-->>A: sync {update, state_vector, version: 16}
+  B->>CO: connect, auth, sync (same checks)
+  CO-->>A: presence [A, B]
+  par concurrent edits
+    A->>CO: update {update}
+    CO->>PO: may A still edit?
+    CO->>DB: merge and save, version 17 (room lock)
+    CO-->>A: ack {version: 17}
+    CO->>PO: may B still edit?
+    CO-->>B: update {update, version: 17}
   and
-    B->>RT: yjs-update {bytes, client_id: B}
-    RT->>CO: apply(update B)
-    CO->>DB: INSERT draft_update
-    CO->>R: PUBLISH draft:42 update B
-    R-->>RT: update B
-    RT-->>A: yjs-update B
+    B->>CO: update {update}
+    CO->>DB: merge and save, version 18 (room lock)
+    CO-->>B: ack {version: 18}
+    CO-->>A: update {update, version: 18}
   end
-  Note over A,B: CRDT merge is order-independent, so A and B<br/>converge to the same text and neither edit is lost
-
-  alt saving an update fails (DB unavailable)
-    CO-->>A: error {code: SAVE_FAILED, retry: true}
-    Note over A: Client keeps the update locally and resends<br/>after backoff, banner "Not saved yet"
+  Note over A,B: Yjs merges are order-independent: both documents are equal and no text is lost
+  opt B's connection drops
+    Note over B: "Offline", edits stay in B's document
+    B->>CO: reconnect, auth, sync {state_vector}
+    CO-->>B: sync {what B misses, server state_vector}
+    B->>CO: update {what the server misses}
   end
-
-  par both officers press Publish
-    A->>CO: POST /api/v1/drafts/42/publish {expected_version: 17}
+  par both press Publish
+    A->>CO: POST /drafts/42/publish {expected_version: 18}
   and
-    B->>CO: POST /api/v1/drafts/42/publish {expected_version: 17}
+    B->>CO: POST /drafts/42/publish {expected_version: 18}
   end
-  CO->>DB: BEGIN, UPDATE drafts SET status='published', version=18<br/>WHERE id=42 AND version=17 AND status='editing'
-  DB-->>CO: 1 row updated (A's request wins the row lock)
-  CO->>DB: INSERT post (sanitized HTML from Yjs state), INSERT event, COMMIT
-  CO-->>A: 201 Created {post_id: 913}
-  CO->>DB: same conditional UPDATE for B's request
-  DB-->>CO: 0 rows updated
-  CO-->>B: 409 Conflict {code: ALREADY_PUBLISHED, post_id: 913}
-  CO->>R: PUBLISH community:7 post.created {post_id: 913}
-  R-->>RT: post.created
-  RT-->>A: event post.created (draft room closed, read-only)
-  RT-->>B: event post.created (draft room closed, read-only)
-
-  opt B's connection drops during editing
-    Note over B,RT: B's client buffers local updates, on reconnect it sends<br/>its state vector and receives only the missing updates
-  end
+  CO->>DB: UPDATE draft SET status='published' WHERE id=42 AND version=18 AND status='editing'
+  DB-->>CO: 1 row (A)
+  CO->>DB: INSERT post with sanitized HTML, COMMIT
+  CO-->>A: 201 post
+  DB-->>CO: 0 rows (B)
+  CO-->>B: 409 ALREADY_PUBLISHED {post_id}
+  CO-->>B: published {post_id}, close 4409
