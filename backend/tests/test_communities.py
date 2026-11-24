@@ -71,3 +71,10 @@ def test_muted_community_sends_no_notifications(api):
     api.delete("aisha", f"/communities/{ROBOTICS}/mute")
     api.new_post("lina", "<p>@aisha again</p>", "community", community_id=ROBOTICS)
     assert "Lina Park mentioned you." in api.notes("aisha")
+
+
+def test_unapproved_community_gives_no_officer_rights(api):
+    body = {"community_id": FILM, "kind": "announcement", "title": "Bypass"}
+    assert code(api.post("yusuf", "/drafts", body)) == (403, "NOT_AN_OFFICER")
+    api.post("dean", f"/admin/communities/{FILM}/decision", {"accept": True, "reason": "Fine"})
+    assert api.post("yusuf", "/drafts", body).status_code == 201

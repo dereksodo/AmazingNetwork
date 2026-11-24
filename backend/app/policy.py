@@ -41,9 +41,12 @@ def is_blocked(db: Session, a: int, b: int) -> bool:
 
 
 def membership(db: Session, user: User, community_id: int | None) -> Membership | None:
-    """The user's active membership in a community, if any."""
+    """The user's active membership in an approved community, if any."""
     return db.scalar(
-        select(Membership).where(
+        select(Membership)
+        .join(Community)
+        .where(
+            Community.status == "approved",
             Membership.user_id == user.id,
             Membership.community_id == community_id,
             Membership.status == "active",
